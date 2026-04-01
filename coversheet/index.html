@@ -369,8 +369,39 @@ async function buildPdf() {
   doc.text(fitLines,ml+6,y+11);
   y+=fitH+6;
 
-  function secTitle(t){ doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(...dk); doc.text(t,ml,y); doc.setDrawColor(...bl); doc.setLineWidth(0.5); doc.line(ml,y+1.5,W-mr,y+1.5); y+=6; }
-  function bullets(items){ doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(55,65,81); items.forEach(item=>{ const ls=doc.splitTextToSize("• "+item,cW-4); doc.text(ls,ml+2,y); y+=ls.length*4.8; }); y+=2; }
+  function addFooter(){
+    doc.setDrawColor(226,232,240); doc.setLineWidth(0.3); doc.line(ml,H-12,W-mr,H-12);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(148,163,184);
+    doc.text("Shaw Talent  —  shawtalent.com.au",ml,H-7);
+    doc.text("Confidential",W-mr,H-7,{align:"right"});
+  }
+
+  function checkPage(need){
+    if(y+need > H-18){
+      addFooter();
+      doc.addPage();
+      y=16;
+    }
+  }
+
+  function secTitle(t){
+    checkPage(12);
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(...dk);
+    doc.text(t,ml,y);
+    doc.setDrawColor(...bl); doc.setLineWidth(0.5); doc.line(ml,y+1.5,W-mr,y+1.5);
+    y+=6;
+  }
+
+  function bullets(items){
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(55,65,81);
+    items.forEach(item=>{
+      const ls=doc.splitTextToSize("• "+item,cW-4);
+      checkPage(ls.length*4.8+2);
+      doc.text(ls,ml+2,y);
+      y+=ls.length*4.8;
+    });
+    y+=2;
+  }
 
   secTitle("PROFESSIONAL SUMMARY");
   bullets(r.professionalSummary||[]);
@@ -415,10 +446,8 @@ async function buildPdf() {
   secTitle("QUALIFICATIONS & PROFESSIONAL MEMBERSHIPS");
   bullets(r.qualifications||[]);
 
-  doc.setDrawColor(226,232,240); doc.setLineWidth(0.3); doc.line(ml,H-12,W-mr,H-12);
-  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(148,163,184);
-  doc.text("Shaw Talent  —  shawtalent.com.au",ml,H-7);
-  doc.text("Confidential",W-mr,H-7,{align:"right"});
+  // Footer on last page
+  addFooter();
 
   builtDoc = doc;
   status.innerHTML = `<span style="color:#22c55e;font-weight:600">✅ PDF ready</span>`;
